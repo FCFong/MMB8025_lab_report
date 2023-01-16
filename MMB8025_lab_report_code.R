@@ -480,3 +480,39 @@ pheatmap(heatmap_data_alt,
          annotation_names_col = F)
 
 # dev.off()
+
+### EXTRA: CHECK SIMILARITY BETWEEN TWO DEG LISTS ##########################
+
+# Gene IDs present in Allo24h DEG list
+degs_01_genes <- degs_01_2 %>% 
+  select(ensembl_gene_id)
+
+# Details of gene name, foldchange and direction
+degs_01_for_join <- degs_01_1 %>% 
+  mutate("Change_direction_24h" = ifelse(log2FoldChange>0, "up", "down")) %>% 
+  rename("log2FoldChange_24h" = log2FoldChange) %>% 
+  select(ensembl_gene_id, external_gene_name, Change_direction_24h, log2FoldChange_24h)  
+
+# Gene IDs present in Allo2h DEG list
+degs_02_genes <- degs_02_2 %>% 
+  select(ensembl_gene_id)
+
+# Details of gene name, foldchange and direction
+degs_02_for_join <- degs_02_2 %>% 
+  mutate("Change_direction_2h" = ifelse(log2FoldChange>0, "up", "down")) %>% 
+  rename("log2FoldChange_2h" = log2FoldChange) %>% 
+  select(ensembl_gene_id, external_gene_name, Change_direction_2h, log2FoldChange_2h)  
+
+# Identify gene IDs shared between two lists, then add corresponding details
+degs_shared_genes <- degs_01_genes %>% 
+  inner_join(degs_02_genes) 
+# n = 33 
+
+degs_shared_genes_details <- degs_shared_genes %>% 
+  left_join(degs_01_for_join) %>% 
+  left_join(degs_02_for_join) 
+
+# Check to see if direction of change differ for Allo2h vs Allo24h
+degs_diff_dir <- degs_shared_genes_details %>% 
+  filter(Change_direction_24h != Change_direction_2h)
+# n = 0
